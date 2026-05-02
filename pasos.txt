@@ -1,0 +1,208 @@
+
+crear proyecto
+    dotnet new mvc -n TareasMVC
+
+Ab123456789!
+
+Microsoft.EntityFrameworkCore.SqlServer
+    dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 9.0.0
+
+    dotnet add package Microsoft.EntityFrameworkCore.Design --version 9.0.2
+    dotnet add package Microsoft.EntityFrameworkCore.Tools --version 9.0.2
+
+crear en raiz
+    ApplicationDbContext.cs
+
+agregar en appsettings.Development.json
+    "ConnectionStrings": {
+        "DefaultConnection": "Server=DESKTOP-O8P9EBV\\SQLEXPRESS;Database=ProyectoMVCTareas;Integrated Security=True;TrustServerCertificate=true;"
+    },
+
+agregar a Program.cs
+    builder.Services.AddDbContext<ApplicationDbContext>(opciones => opciones.UseSqlServer("name=DefaultConnection"));
+
+crear Entidades/Tarea
+
+doble click en TareasMVC 
+    y poner <Nullable>disable</Nullable> para deshabilitar los nulos
+
+
+crear Migracion
+    dotnet ef migrations add Tareas
+        crea Migrations y su respetiva migracion
+            *Done. To undo this action, use 'ef migrations remove'
+
+ejecutar migracion
+    dotnet ef database update 
+       O para aplicar una migración específica:
+    dotnet ef database update Tareas
+
+    dotnet ef migrations add TituloConfigurado
+        dotnet ef database update 
+
+crear Entidades/Paso
+    dotnet ef migrations add Pasos
+    dotnet ef database update 
+
+crear Entidades/ArchivoAdjunto
+    dotnet ef migrations add ArchivosAdjuntos
+    dotnet ef database update 
+
+Identity.EntityFrameworkCore
+    dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 9.0.13
+
+    dotnet ef migrations add Ususarios
+    dotnet ef database update 
+
+agregar a Program.cs:
+    builder.Services.AddIdentity<IdentityUser, IdentityRole>(opciones =>
+    {
+        opciones.SignIn.RequireConfirmedAccount = false;
+    }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders(); // Agregar servicios de Identitty
+
+
+    builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, opciones =>
+    {
+        opciones.LoginPath = "/usuarios/login";
+        opciones.AccessDeniedPath = "usuarios/login";
+    });
+
+    y el middelware
+
+    app.UseAuthentication(); // middleware para identity
+
+
+crear Models/RegistroViewModel
+crear Views/Usuarios/Registro
+crear Views/Usuarios/_layout
+crear Controllers/UsuariosController
+
+agregar auth alos controladores en Program.cs
+    var politicaUsuariosAutenticados = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+
+    // Add services to the container.
+    builder.Services.AddControllersWithViews(opciones =>
+    {
+        opciones.Filters.Add(new AuthorizeFilter(politicaUsuariosAutenticados));
+    });
+
+crear Models/LoginViewModel
+crear Views/Usuarios/Login
+crear Views/Sahred/_LinksLogin
+
+Authentication.MicrosoftAccount
+dotnet add package Microsoft.AspNetCore.Authentication.MicrosoftAccount --version 9.0.0
+
+agregar a variables a secrets
+    agregar a Program.cs
+    builder.Services.AddAuthentication().AddMicrosoftAccount(opciones =>
+    {
+        opciones.ClientId = builder.Configuration["MicrosoftClientId"];
+        opciones.ClientSecret = builder.Configuration["MicrosoftSecretId"];
+    }); // Activar servivios de autenitcacion
+
+migracion para AdminRol
+    dotnet ef migrations add AdminRol
+
+    crear migracion 
+         protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS(Select Id from AspNetRoles where Id = '3c87c477-481b-45a0-b9d1-7c3a1084522b')
+                BEGIN
+                    INSERT AspNetRoles (Id, [Name], [NormalizedName])
+                    VALUES ('3c87c477-481b-45a0-b9d1-7c3a1084522b', 'admin', 'ADMIN')
+            ");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("DELETE AspNetRoles Where Id = '3c87c477-481b-45a0-b9d1-7c3a1084522b'");
+        }
+
+    dotnet ef database update 
+
+crear Models/UsuarioViewModel
+crear Models/UsuariosListadoViewModel
+crear Views/Usuarios/Listado
+
+crear Servicios/Constantes
+
+Relacion Tareas usarios
+    public string UsuarioCreacionId { get; set; }
+    public IdentityUser UsuarioCreacion { get; set; }
+
+    dotnet ef migrations add TareaUsuario
+    dotnet ef database update 
+
+agregar en Program.cs para habilitar IStringLocalizer
+    builder.Services.AddLocalization();
+
+    // Configuracion de Idiomas
+
+    var culturasUISoportadas = new[] {"es", "en"};
+
+    app.UseRequestLocalization( opciones =>
+    {
+        opciones.DefaultRequestCulture = new RequestCulture("es");
+        opciones.SupportedUICultures = culturasUISoportadas.Select(cultura => new CultureInfo(cultura)).ToList();
+    });
+
+crear Recursos
+        Controllers
+
+otra foma para ver el idioma 
+    http://localhost:5080/?ui-culture=en
+
+    habilitar traducciones en las vistas 
+        builder.Services.AddControllersWithViews(opciones =>
+            { 
+                opciones.Filters.Add(new AuthorizeFilter(politicaUsuariosAutenticados));
+            }).AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix);
+
+
+crear Views/Sahred/_TraduccionesJS
+crear Views/Sahred/_CambiarIdioma
+
+agregar knockout en _Layout
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"></script>
+
+crear wwwroot/js/tareas.js
+
+crear Controllers/TareasController
+
+crear Servicios/IServicioUsuarios
+
+    agregar a Program.cs
+        builder.Services.AddTransient<IServicioUsuarios, ServicioUsuarios>();
+
+crear Models/TareaDTO
+
+DTO = Data Transfer Object
+
+agregar AutoMapper
+    dotnet add package AutoMapper
+    dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
+
+    dotnet remove package AutoMapper
+    dotnet remove package AutoMapper.Extensions.Microsoft.DependencyInjection
+
+    dotnet add package AutoMapper --version 13.0.1
+    dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection --version 13.0.0
+        agregar en Program.cs
+            builder.Services.AddAutoMapper(typeof(Program));
+
+crear Servicios/AutoMapperProfiles
+
+sweetalert2
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+agregar jqueryUi
+    descargar y pegar en wwwroot/libs
+        y agregar al _Layout 
+            <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
+
+
+crear Views/Home/_ModalEditarTarea
+crear Models/TareaEditarDTO
