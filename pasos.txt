@@ -224,3 +224,23 @@ agregar a Program.cs
         // Ignosra referencias ciclicas 
         opciones.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
+
+crear Views/Home/_ArchivosAdjuntos
+crear wwwroot/js/archivos-adjuntos.js
+crear Servicios/IAlmacenadorArchivos
+crear Models/AlmacenarArchivoResultado
+crear Controllers/ArchivosController
+
+Azure.Storage.Blobs
+dotnet add package Azure.Storage.Blobs
+
+copiar AzureStorage en appsettings.Development.json
+
+crear Servicios/AlmacenadorArchivosAzure
+
+agregar a Program.cs
+    builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosAzure>();
+
+crear Servicios/
+agregar a Program.cs
+    builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
